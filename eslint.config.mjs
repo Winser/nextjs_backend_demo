@@ -6,9 +6,9 @@ export default defineConfig([
   {
     files: ["**/*.ts"],
     rules: {
-      quotes: ["error", "single"],
+      quotes: ["error", "double"],
     }
   },
 
-  globalIgnores(["dist", ".history"]),
+  globalIgnores(["dist", ".history", "prisma"]),
 ]);
