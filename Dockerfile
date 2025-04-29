@@ -9,6 +9,8 @@ COPY . .
 EXPOSE 3000
 ENV PORT=3000
 
+
+RUN npm ci --no-audit
 RUN npx prisma generate
 RUN npm run build
 CMD ["npm", "start"]
