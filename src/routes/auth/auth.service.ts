@@ -3,6 +3,7 @@ import HttpException from "../../models/http-exception.model";
 import { RegisterInput } from "./register-input.model";
 import prisma from "../../prisma/prisma";
 import generateToken from "./token.utils";
+import { LoginInput } from "./login-input.nmodel";
 
 export const createUser = async (registerInput: RegisterInput) => {
     const login = registerInput.login?.trim();
@@ -10,15 +11,15 @@ export const createUser = async (registerInput: RegisterInput) => {
     const password = registerInput.password?.trim();
 
     if (!login) {
-        throw new HttpException(400, {errors: {login: ["can't be blank"]}});
+        throw new HttpException(400, { errors: { login: ["can't be blank"] } });
     }
 
     if (!email) {
-        throw new HttpException(400, {errors: {email: ["can't be blank"]}});
+        throw new HttpException(400, { errors: { email: ["can't be blank"] } });
     }
 
     if (!password) {
-        throw new HttpException(400, {errors: {password: ["can't be blank"]}});
+        throw new HttpException(400, { errors: { password: ["can't be blank"] } });
     }
 
     await checkUserUnique(login, email);
@@ -37,6 +38,45 @@ export const createUser = async (registerInput: RegisterInput) => {
         token: generateToken(user.id),
     }
 }
+
+export const login = async (loginInput: LoginInput) => {
+    const username = loginInput.login?.trim();
+    const email = loginInput.email?.trim();
+    const password = loginInput.password?.trim();
+
+    if (!email && !username) {
+        const errors: Record<string, string[]> = {}
+        if (!email) {
+            errors.email = ["can't be blank"];
+        }
+        if (!username) {
+            errors.login = ["can't be blank"];
+        }
+        throw new HttpException(400, { errors });
+    }
+
+    if (!password) {
+        throw new HttpException(400, { errors: { password: ["can't be blank"] } });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: email ? { email } : { username },
+    });
+
+    if (user) {
+        const match = await bcrypt.compare(password, user.password);
+
+        if (match) {
+            return generateToken(user.id);
+        }
+    }
+
+    throw new HttpException(403, {
+        errors: {
+            'email or password': ['is invalid'],
+        },
+    });
+};
 
 const checkUserUnique = async (login: string, email: string) => {
     const emailExistsPromice = prisma.user.findUnique({
