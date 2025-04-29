@@ -61,9 +61,9 @@ describe("authController", () => {
     });
   });
 
-  describe("GET /login", () => {
+  describe("POST /login", () => {
     it("should return 400 if user is missing in the request body", async () => {
-      const response = await request(app).get("/login").send({});
+      const response = await request(app).post("/login").send({});
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
         errors: { user: ["can't be blank"] },
@@ -78,7 +78,7 @@ describe("authController", () => {
       (login as jest.Mock).mockResolvedValue(mockUser);
 
       const response = await request(app)
-        .get("/login")
+        .post("/login")
         .send({ user: { email: "test@example.com", password: "password123" } });
 
       expect(response.status).toBe(200);
@@ -97,7 +97,7 @@ describe("authController", () => {
       }));
 
       const response = await request(app)
-        .get("/login")
+        .post("/login")
         .send({ user: { email: "test@example.com", password: "password123" } });
 
       expect(response.status).toBe(403);

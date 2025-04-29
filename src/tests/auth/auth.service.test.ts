@@ -21,7 +21,7 @@ jest.mock("../../../src/routes/auth/token.utils", () => jest.fn());
 
 describe("createUser", () => {
     const mockRegisterInput = {
-        login: "testuser",
+        username: "testuser",
         email: "test@example.com",
         password: "password123",
     };
@@ -30,8 +30,8 @@ describe("createUser", () => {
         jest.clearAllMocks();
     });
 
-    it("should throw an error if login is missing", async () => {
-        const input = { ...mockRegisterInput, login: "" };
+    it("should throw an error if username is missing", async () => {
+        const input = { ...mockRegisterInput, username: "" };
         await expect(createUser(input)).rejects.toThrow(HttpException);
     });
 
@@ -68,7 +68,7 @@ describe("createUser", () => {
         (bcrypt.hash as jest.Mock).mockResolvedValue("hashedPassword");
         (prisma.user.create as jest.Mock).mockResolvedValue({
             id: 1,
-            username: mockRegisterInput.login,
+            username: mockRegisterInput.username,
             email: mockRegisterInput.email,
             password: "hashedPassword",
         });
@@ -77,7 +77,7 @@ describe("createUser", () => {
         const result = await createUser(mockRegisterInput);
         expect(prisma.user.create).toHaveBeenCalledWith({
             data: {
-                username: mockRegisterInput.login,
+                username: mockRegisterInput.username,
                 email: mockRegisterInput.email,
                 password: "hashedPassword",
             },
@@ -85,7 +85,7 @@ describe("createUser", () => {
         expect(result).toEqual({
             user: {
                 id: 1,
-                username: mockRegisterInput.login,
+                username: mockRegisterInput.username,
                 email: mockRegisterInput.email,
                 password: "hashedPassword",
             },

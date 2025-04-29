@@ -20,7 +20,7 @@ const authController = Router();
  *               user:
  *                 type: object
  *                 properties:
- *                   login:
+ *                   username:
  *                     type: string
  *                   email:
  *                     type: string

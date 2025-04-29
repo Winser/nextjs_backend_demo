@@ -6,12 +6,12 @@ import generateToken from "./token.utils";
 import { LoginInput } from "./login-input.nmodel";
 
 export const createUser = async (registerInput: RegisterInput) => {
-    const login = registerInput.login?.trim();
+    const username = registerInput.username?.trim();
     const email = registerInput.email?.trim();
     const password = registerInput.password?.trim();
 
-    if (!login) {
-        throw new HttpException(400, { errors: { login: ["can't be blank"] } });
+    if (!username) {
+        throw new HttpException(400, { errors: { username: ["can't be blank"] } });
     }
 
     if (!email) {
@@ -22,12 +22,12 @@ export const createUser = async (registerInput: RegisterInput) => {
         throw new HttpException(400, { errors: { password: ["can't be blank"] } });
     }
 
-    await checkUserUnique(login, email);
+    await checkUserUnique(username, email);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
         data: {
-            username: login,
+            username: username,
             email: email,
             password: hashedPassword,
         }
@@ -40,7 +40,7 @@ export const createUser = async (registerInput: RegisterInput) => {
 }
 
 export const login = async (loginInput: LoginInput) => {
-    const username = loginInput.login?.trim();
+    const username = loginInput.username?.trim();
     const email = loginInput.email?.trim();
     const password = loginInput.password?.trim();
 
@@ -78,7 +78,7 @@ export const login = async (loginInput: LoginInput) => {
     });
 };
 
-const checkUserUnique = async (login: string, email: string) => {
+const checkUserUnique = async (username: string, email: string) => {
     const emailExistsPromice = prisma.user.findUnique({
         where: {
             email: email,
@@ -90,7 +90,7 @@ const checkUserUnique = async (login: string, email: string) => {
 
     const loginExistsPromice = prisma.user.findUnique({
         where: {
-            username: login,
+            username: username,
         },
         select: {
             id: true,
