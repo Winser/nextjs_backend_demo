@@ -6,21 +6,9 @@ import generateToken from "./token.utils";
 import { LoginInput } from "./login-input.nmodel";
 
 export const createUser = async (registerInput: RegisterInput) => {
-    const username = registerInput.username?.trim();
-    const email = registerInput.email?.trim();
-    const password = registerInput.password?.trim();
-
-    if (!username) {
-        throw new HttpException(400, { errors: { username: ["can't be blank"] } });
-    }
-
-    if (!email) {
-        throw new HttpException(400, { errors: { email: ["can't be blank"] } });
-    }
-
-    if (!password) {
-        throw new HttpException(400, { errors: { password: ["can't be blank"] } });
-    }
+    const username = registerInput.username.trim();
+    const email = registerInput.email.trim();
+    const password = registerInput.password.trim();
 
     await checkUserUnique(username, email);
 
@@ -42,22 +30,7 @@ export const createUser = async (registerInput: RegisterInput) => {
 export const login = async (loginInput: LoginInput) => {
     const username = loginInput.username?.trim();
     const email = loginInput.email?.trim();
-    const password = loginInput.password?.trim();
-
-    if (!email && !username) {
-        const errors: Record<string, string[]> = {}
-        if (!email) {
-            errors.email = ["can't be blank"];
-        }
-        if (!username) {
-            errors.login = ["can't be blank"];
-        }
-        throw new HttpException(400, { errors });
-    }
-
-    if (!password) {
-        throw new HttpException(400, { errors: { password: ["can't be blank"] } });
-    }
+    const password = loginInput.password.trim();
 
     const user = await prisma.user.findUnique({
         where: email ? { email } : { username },

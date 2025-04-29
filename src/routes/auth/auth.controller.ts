@@ -1,6 +1,7 @@
 import { NextFunction, Router } from "express";
 import { createUser, login } from "./auth.service";
 import HttpException from "../../models/http-exception.model";
+import { body, validationResult } from "express-validator";
 
 const authController = Router();
 
@@ -46,20 +47,28 @@ const authController = Router();
  *       400:
  *         description: Bad request
  */
-authController.post("/register", async (req, res, next: NextFunction) => {
-  try {
-    if (!req.body?.user) {
-      throw new HttpException(400, { errors: { user: ["can't be blank"] } });
+authController.post("/register",
+  body("user.username").isLength({ min: 3 }),
+  body("user.email").isEmail(),
+  body("user.password").isLength({ min: 8 }),
+  async (req, res, next: NextFunction) => {
+
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        throw new HttpException(400, { errors: errors.array() });
+      }
+
+      const user = await createUser({ ...req.body.user });
+      res.status(201).json({
+        user: user.user,
+        token: user.token,
+      });
+    } catch (error) {
+      next(error);
     }
-    const user = await createUser({ ...req.body.user });
-    res.status(201).json({
-      user: user.user,
-      token: user.token,
-    });
-  } catch (error) {
-    next(error);
   }
-})
+)
 
 /**
  * @swagger
@@ -85,17 +94,24 @@ authController.post("/register", async (req, res, next: NextFunction) => {
  *       200:
  *         description: JWT token
  */
-authController.post("/login", async (req, res, next) => {
-  try {
-    if (!req.body?.user) {
-      throw new HttpException(400, { errors: { user: ["can't be blank"] } });
+authController.post("/login",
+  body("user.username").if(body("user.email").not().exists()).exists(),
+  body("user.email").if(body("user.username").not().exists()).exists(),
+  body("user.password").exists(),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        throw new HttpException(400, { errors: errors.array() });
+      }
+      
+      const user = await login({ ...req.body.user });
+      res.status(200).json(user);
+    } catch (error) {
+      next(error)
     }
-    const user = await login({ ...req.body.user });
-    res.status(200).json(user);
-  } catch (error) {
-    next(error)
   }
-})
+)
 
 
 export default authController;
